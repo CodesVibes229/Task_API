@@ -55,8 +55,8 @@ python3 --version
 ### 1️⃣ Cloner le projet
 
 ```bash
-git clone https://github.com/ton-username/task-api.git
-cd task-api
+git clone https://github.com/CodesVibes229/Task_API.git
+cd Task_API
 ```
 
 ---
