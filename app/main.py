@@ -1,17 +1,16 @@
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 
-from app.database import SessionLocal, engine
 from app import models, schemas
+from app.database import engine, SessionLocal
 
 models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI(
-    title="FastAPI DevOps Project",
-    version="1.0.0"
-)
+app = FastAPI(title="Task API", version="1.0.0")
 
-# Dependency DB
+
+# Dépendance DB
 def get_db():
     db = SessionLocal()
     try:
@@ -19,21 +18,23 @@ def get_db():
     finally:
         db.close()
 
+
+# Healthcheck
+@app.get("/health", tags=["Health"])
+def healthcheck(db: Session = Depends(get_db)):
+    try:
+        db.execute(text("SELECT 1"))
+        return {
+            "status": "ok",
+            "database": "connected"
+        }
+    except Exception:
+        return {
+            "status": "error",
+            "database": "disconnected"
+        }
+
+
 @app.get("/")
 def root():
-    return {"message": "FastAPI is running 🚀"}
-
-@app.post("/users", response_model=schemas.UserResponse)
-def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    db_user = models.User(
-        username=user.username,
-        email=user.email
-    )
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    return db_user
-
-@app.get("/users", response_model=list[schemas.UserResponse])
-def list_users(db: Session = Depends(get_db)):
-    return db.query(models.User).all()
+    return {"message": "Task API is running"}
