@@ -1,14 +1,15 @@
 from pydantic import BaseModel
 
-class UserBase(BaseModel):
-    username: str
-    email: str
+class TaskBase(BaseModel):
+    title: str
+    description: str | None = None
 
-class UserCreate(UserBase):
+class TaskCreate(TaskBase):
     pass
 
-class UserResponse(UserBase):
+class Task(TaskBase):
     id: int
+    completed: bool
 
     class Config:
-        orm_mode = True
+        from_attributes = True

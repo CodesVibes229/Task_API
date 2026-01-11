@@ -1,40 +1,106 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from sqlalchemy import text
 
+from app.database import Base, engine, get_db
 from app import models, schemas
-from app.database import engine, SessionLocal
 
-models.Base.metadata.create_all(bind=engine)
+# -------------------------------------------------------------------
+# Application
+# -------------------------------------------------------------------
 
-app = FastAPI(title="Task API", version="1.0.0")
+app = FastAPI(
+    title="Task API",
+    description="API de gestion de tâches (FastAPI + PostgreSQL + Docker)",
+    version="1.0.0",
+)
+
+# -------------------------------------------------------------------
+# Initialisation de la base de données
+# -------------------------------------------------------------------
+
+Base.metadata.create_all(bind=engine)
+
+# -------------------------------------------------------------------
+# Routes de base
+# -------------------------------------------------------------------
+
+@app.get("/", tags=["Health"])
+def health_check():
+    """
+    Vérifie que l'API est opérationnelle.
+    """
+    return {"status": "ok", "message": "Task API is running"}
+
+# -------------------------------------------------------------------
+# Routes Tasks
+# -------------------------------------------------------------------
+
+@app.post(
+    "/tasks",
+    response_model=schemas.Task,
+    status_code=status.HTTP_201_CREATED,
+    tags=["Tasks"],
+)
+def create_task(
+    task: schemas.TaskCreate,
+    db: Session = Depends(get_db),
+):
+    """
+    Crée une nouvelle tâche.
+    """
+    db_task = models.Task(**task.model_dump())
+    db.add(db_task)
+    db.commit()
+    db.refresh(db_task)
+    return db_task
 
 
-# Dépendance DB
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+@app.get(
+    "/tasks",
+    response_model=list[schemas.Task],
+    tags=["Tasks"],
+)
+def list_tasks(db: Session = Depends(get_db)):
+    """
+    Retourne toutes les tâches.
+    """
+    return db.query(models.Task).all()
 
 
-# Healthcheck
-@app.get("/health", tags=["Health"])
-def healthcheck(db: Session = Depends(get_db)):
-    try:
-        db.execute(text("SELECT 1"))
-        return {
-            "status": "ok",
-            "database": "connected"
-        }
-    except Exception:
-        return {
-            "status": "error",
-            "database": "disconnected"
-        }
+@app.get(
+    "/tasks/{task_id}",
+    response_model=schemas.Task,
+    tags=["Tasks"],
+)
+def get_task(task_id: int, db: Session = Depends(get_db)):
+    """
+    Récupère une tâche par son ID.
+    """
+    task = db.query(models.Task).filter(models.Task.id == task_id).first()
+    if not task:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Task not found",
+        )
+    return task
 
 
-@app.get("/")
-def root():
-    return {"message": "Task API is running"}
+@app.delete(
+    "/tasks/{task_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    tags=["Tasks"],
+)
+def delete_task(task_id: int, db: Session = Depends(get_db)):
+    """
+    Supprime une tâche.
+    """
+    task = db.query(models.Task).filter(models.Task.id == task_id).first()
+    if not task:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Task not found",
+        )
+
+    db.delete(task)
+    db.commit()
+    return None
