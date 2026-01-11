@@ -1,8 +1,8 @@
+name: CI - FastAPI Task API
+
 permissions:
   contents: read
   packages: write
-
-name: CI - FastAPI Task API
 
 on:
   push:
