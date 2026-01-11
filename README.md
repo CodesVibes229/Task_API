@@ -1,84 +1,103 @@
 
-# 🚀 Task API – FastAPI DevOps Project
+🚀 Task API – FastAPI, Docker & CI/CD
 
-Projet backend **professionnel** réalisé sous **Linux (Ubuntu)**, visant à démontrer une chaîne **DevOps complète** :
-API REST → Conteneurisation → Orchestration → CI/CD → Cloud-ready.
+API REST de gestion de tâches développée avec **FastAPI**, conteneurisée avec **Docker** et intégrant un pipeline **CI/CD complet via GitHub Actions**.
 
----
-
-## 🎯 Objectifs du projet
-
-- Construire une **API REST moderne** avec FastAPI
-- Utiliser **SQLAlchemy** pour la persistance des données
-- Conteneuriser l’application avec **Docker**
-- Orchestrer les services avec **Docker Compose**
-- Mettre en place une **pipeline CI/CD GitHub Actions**
-- Préparer un futur déploiement cloud (AWS / GCP / Azure)
+Ce projet a été conçu comme un **projet DevOps / Backend de bout en bout**, en environnement Linux natif.
 
 ---
 
-## 🛠️ Stack technique
+🎯 Objectifs du projet
 
-|Domaine | Technologie|
-| ------- | -------- | 
-| Langage     | Python 3.10+ | 
-| Framework API    | FastAPI | 
-| Server ASGI   | Uvicorn | 
-| ORM    | SQLAlchemy 2.x |
-| Base de données    | PostgreSQL |
-| Conteneurisation | Docker |
-| Orchestration    | Docker Compose |
-| CI/CD    | Github Actions |
-| OS Cible    | Linux |
+- Concevoir une API REST propre et maintenable
+- Mettre en place des tests automatisés
+- Conteneuriser l’application avec Docker
+- Orchestrer les services avec Docker Compose
+- Implémenter un pipeline CI/CD fonctionnel
+- Préparer l’application pour un futur déploiement cloud
 
-```
-```
-## ⚙️ Prérequis
+---
 
-- Ubuntu Linux
-- Python **3.10 ou supérieur**
-- Docker Engine
-- Docker Compose
-- Git
+## 🧱 Stack technique
 
-Vérification rapide :
+### Backend
+- **Python 3.10+**
+- **FastAPI**
+- **SQLAlchemy**
+- **Pydantic**
+- **SQLite** (facilement remplaçable par PostgreSQL)
+
+### DevOps
+- **Docker**
+- **Docker Compose**
+- **GitHub Actions**
+- **GitHub Container Registry (GHCR)**
+
+### Tests
+- **Pytest**
+- **FastAPI TestClient**
+
+---
+
+## ⚙️ Fonctionnalités
+
+- ✅ API REST fonctionnelle
+- ✅ Endpoint racine de vérification de santé
+- ✅ Création et listing de tâches
+- ✅ Tests automatisés
+- ✅ Build Docker reproductible
+- ✅ Pipeline CI/CD automatisé
+- ✅ Push automatique de l’image Docker vers GHCR
+
+---
+
+## ▶️ Lancer le projet en local (sans Docker)
+
 ```bash
-docker --version
-docker compose version
-python3 --version
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+export DATABASE_URL=sqlite:///./app.db
+uvicorn app.main:app --reload
 ````
 
+Accès API :
+👉 [http://127.0.0.1:8000](http://127.0.0.1:8000)
+👉 [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+
 ---
 
-## 🚀 Lancement du projet (Docker)
-
-### 1️⃣ Cloner le projet
+## 🧪 Lancer les tests
 
 ```bash
-git clone https://github.com/CodesVibes229/Task_API.git
-cd Task_API
+export DATABASE_URL=sqlite:///./test.db
+pytest
 ```
 
 ---
 
-### 2️⃣ Créer le fichier `.env`
+## 🐳 Lancer avec Docker
+
+### Build de l’image
 
 ```bash
-cp .env.example .env
+docker build -t task-api .
 ```
 
-Exemple :
+### Lancer le conteneur
 
-```env
-POSTGRES_DB=taskdb
-POSTGRES_USER=taskuser
-POSTGRES_PASSWORD=taskpassword
-DATABASE_URL=postgresql://taskuser:taskpassword@db:5432/taskdb
+```bash
+docker run -d \
+  --name task_api_container \
+  -p 8000:8000 \
+  -e DATABASE_URL=sqlite:///./app.db \
+  task-api
 ```
 
 ---
 
-### 3️⃣ Build & run
+## 🐳 Docker Compose
 
 ```bash
 docker compose up --build
@@ -86,78 +105,61 @@ docker compose up --build
 
 ---
 
-### 4️⃣ Accéder à l’API
+## 🔄 CI/CD – GitHub Actions
 
-* API : [http://localhost:8000](http://localhost:8000)
-* Swagger UI : [http://localhost:8000/docs](http://localhost:8000/docs)
-* OpenAPI JSON : [http://localhost:8000/openapi.json](http://localhost:8000/openapi.json)
-
----
-
-## 📌 Endpoints disponibles (exemple)
-
-| Méthode | Endpoint | Description             |
-| ------- | -------- | ----------------------- |
-| GET     | `/tasks` | Lister les tâches       |
-| POST    | `/tasks` | Créer une tâche         |
-| GET     | `/users` | Lister les utilisateurs |
-| POST    | `/users` | Créer un utilisateur    |
-
----
-
-## 🧪 Lancer les tests
-
-```bash
-pytest
-```
-
----
-
-## 🔄 CI/CD (GitHub Actions)
-
-Pipeline automatisée :
-
-* Installation des dépendances
-* Linting (`flake8`)
-* Tests (`pytest`)
-* Vérification du build Docker
-
-Déclenchée sur :
+Le pipeline CI/CD se déclenche automatiquement sur :
 
 * `push`
 * `pull_request`
 
----
+### Étapes du pipeline :
 
-## 🧠 Bonnes pratiques appliquées
+1. Installation des dépendances
+2. Exécution des tests
+3. Build de l’image Docker
+4. Push vers GitHub Container Registry (GHCR)
 
-✔ Architecture propre
-✔ Séparation API / DB
-✔ Variables d’environnement
-✔ Conteneurs isolés
-✔ CI/CD automatisée
-✔ Prêt pour production
+✔️ Le pipeline doit être **vert** avant tout push d’image.
 
 ---
 
-## 🚧 Améliorations futures
+## 📦 Image Docker
 
-* Authentification JWT
-* Gestion des rôles (RBAC)
-* Migrations Alembic
-* Déploiement cloud (EC2 / ECS / GKE)
-* Monitoring (Prometheus + Grafana)
+L’image est publiée automatiquement sur :
+
+```
+ghcr.io/CodesVibes229/task-api:latest
+```
+
+---
+
+## 🔐 Variables d’environnement
+
+| Variable     | Description               |
+| ------------ | ------------------------- |
+| DATABASE_URL | URL de la base de données |
+
+---
+
+## 🚀 Évolutions prévues
+
+* PostgreSQL
+* Sécurité (authentification JWT)
+* Déploiement VPS / Cloud
+* Monitoring & logs
+* Migration vers Kubernetes
 
 ---
 
 ## 👤 Auteur
 
-**Harold**
-Backend / DevOps junior
-Passionné par l’infrastructure, l’automatisation et les systèmes distribués.
+**Pascal**
+Projet personnel – DevOps / Backend
+Linux • Docker • FastAPI • CI/CD
 
 ---
 
-## 📄 Licence
+## 📜 Licence
 
 Projet open-source à but pédagogique.
+
